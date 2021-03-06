@@ -60,15 +60,17 @@ class Light {
     void Present();
     void LightUpdate();
     void RecieveMessage(MyMessage);
+    void LoadState();
     
   private:
     int Relay, Button, ID;
     Bounce debouncer = Bounce();
     MyMessage msg;
 };
-Light::Light(int ID, int Relay, int Button){
-  this->Relay = Relay; //1
-  this->Button = Button; //53
+//Light::Light(int ID, int Relay, int Button){
+Light::Light(int ID, int Button, int Relay){
+  this->Relay = Relay;
+  this->Button = Button;
   this->ID = ID;
   this->msg = MyMessage(this->ID, V_LIGHT);
 
@@ -80,7 +82,11 @@ Light::Light(int ID, int Relay, int Button){
 
   //initialize relay
   pinMode(this->Relay, OUTPUT);
-  digitalWrite(this->Relay, RELAY_OFF); //Turn off Light by default on startup
+  //digitalWrite(this->Relay, RELAY_OFF); //Turn off Light by default on startup
+}
+void Light::LoadState(){
+  digitalWrite(this->Relay, loadState(this->ID)?RELAY_ON:RELAY_OFF);
+  send(this->msg.set(loadState(this->ID)));
 }
 void Light::Present(){
   present(this->ID, S_BINARY);
@@ -136,7 +142,9 @@ void before() {
 
 }
 void setup() { 
-
+    for (int x = 0; x<NumberOfLights; x++) {
+      Lights[x].LoadState();
+    }
 }
 void presentation()  
 {   
